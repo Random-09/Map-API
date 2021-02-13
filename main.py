@@ -1,33 +1,41 @@
 import sys
 import requests
+from PyQt5 import uic
 
-from design import Ui_MainWindow
+# from design import Ui_MainWindow
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 
-class Window(QMainWindow, Ui_MainWindow):
+class Window(QMainWindow):  # Ui_MainWindow
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
-        self.coordinates = ''
-        self.scale = ''
+        uic.loadUi('design.ui', self)
+        # self.setupUi(self)
+        self.api_key = '40d1649f-0493-4b70-98ba-98533de7710b'
+        self.coordinates = '37.620070,55.753630'
+        self.scale = '10'
+        self.size = '650,450'  # ограничение по размеру: 650х450
         self.map_file = "map.png"
-        self.get_coordinates()
-        self.get_scale()
+        self.pixmap = QPixmap()
         self.get_image()
-
-    def get_coordinates(self):
-        self.coordinates = self.lineEdit.text()
-
-    def get_scale(self):
-        self.scale = self.lineEdit_2.text()
+        self.set_image()
 
     def get_image(self):
-        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.coordinates}&l=map&apikey=40d1649f-0493-4b70-98ba" \
-                      f"-98533de7710b&z={self.scale}"
+        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.coordinates}&l=map&" \
+                      f"apikey=40d1649f-0493-4b70-98ba-98533de7710b&size={self.size}&z={self.scale}"
         response = requests.get(map_request)
         with open(self.map_file, "wb") as f:
             f.write(response.content)
+        print(response)
+
+    def set_image(self):
+        self.pixmap = QPixmap(self.map_file)
+        self.label.setPixmap(self.pixmap)
+
+
+def except_hook(cls, exception, traceback):
+    sys.__excepthook__(cls, exception, traceback)
 
 
 if __name__ == '__main__':
