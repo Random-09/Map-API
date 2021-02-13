@@ -13,8 +13,10 @@ class Window(QMainWindow):  # Ui_MainWindow
         uic.loadUi('design.ui', self)
         # self.setupUi(self)
         self.api_key = '40d1649f-0493-4b70-98ba-98533de7710b'
-        self.coordinates = '37.620070,55.753630'
-        self.scale = 10
+        self.w = 37.620070
+        self.h = 55.753630
+        self.scale = 0
+        self.spn_W, self.spn_H = 90, 45
         self.size = '650,450'  # ограничение по размеру: 650х450
         self.map_file = "map.png"
         self.pixmap = QPixmap()
@@ -22,12 +24,17 @@ class Window(QMainWindow):  # Ui_MainWindow
         self.set_image()
 
     def get_image(self):
-        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.coordinates}&l=map&" \
-                      f"apikey=40d1649f-0493-4b70-98ba-98533de7710b&size={self.size}&z={str(self.scale)}"
+        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.w},{self.h}&l=map&" \
+                      f"apikey={self.api_key}&size={self.size}&spn={str(self.spn_W)},{str(self.spn_H)}"
         response = requests.get(map_request)
         with open(self.map_file, "wb") as f:
             f.write(response.content)
-        print(response)
+
+    def update_scale(self):
+        self.spn_W = 90 / round(2 ** self.scale, 6)
+        self.spn_H = 45 / round(2 ** self.scale, 6)
+        # print(self.scale)
+        # print(self.spn_W, self.spn_H)
 
     def set_image(self):
         self.pixmap = QPixmap(self.map_file)
@@ -38,8 +45,21 @@ class Window(QMainWindow):  # Ui_MainWindow
             if self.scale >= 1:
                 self.scale -= 1
         if event.key() == Qt.Key_PageUp:
-            if self.scale < 17:
+            if self.scale <= 17:
                 self.scale += 1
+        if event.key() == Qt.Key_Up:
+            if self.h + (45 / round(2 ** self.scale, 6)) * 2 < 83:
+                self.h += (45 / round(2 ** self.scale, 6)) * 2
+        if event.key() == Qt.Key_Down:
+            if self.h - (45 / round(2 ** self.scale, 6)) * 2 > -90:
+                self.h -= (45 / round(2 ** self.scale, 6)) * 2
+        if event.key() == Qt.Key_Right:
+            if self.w + (90 / round(2 ** self.scale, 6)) * 2.5 < 180:
+                self.w += (90 / round(2 ** self.scale, 6)) * 2.5
+        if event.key() == Qt.Key_Left:
+            if self.w - (90 / round(2 ** self.scale, 6)) * 2.5 > - 180:
+                self.w -= (90 / round(2 ** self.scale, 6)) * 2.5  # цифры работают только на долготе Москвы
+        self.update_scale()
         self.get_image()
         self.set_image()
 
