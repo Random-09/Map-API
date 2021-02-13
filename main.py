@@ -18,17 +18,26 @@ class Window(QMainWindow):  # Ui_MainWindow
         self.scale = 0
         self.spn_W, self.spn_H = 90, 45
         self.size = '650,450'  # ограничение по размеру: 650х450
+        self.cur_map = 'map'
         self.map_file = "map.png"
         self.pixmap = QPixmap()
         self.get_image()
         self.set_image()
 
+        self.scheme_but.clicked.connect(self.set_scheme)
+        self.sat_but.clicked.connect(self.set_sat)
+        self.hybrid_but.clicked.connect(self.set_hybrid)
+
     def get_image(self):
-        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.w},{self.h}&l=map&" \
+        map_request = f"https://static-maps.yandex.ru/1.x/?ll={self.w},{self.h}&l={self.cur_map}&" \
                       f"apikey={self.api_key}&size={self.size}&spn={str(self.spn_W)},{str(self.spn_H)}"
         response = requests.get(map_request)
         with open(self.map_file, "wb") as f:
             f.write(response.content)
+
+    def set_image(self):
+        self.pixmap = QPixmap(self.map_file)
+        self.label.setPixmap(self.pixmap)
 
     def update_scale(self):
         self.spn_W = 90 / round(2 ** self.scale, 6)
@@ -36,9 +45,23 @@ class Window(QMainWindow):  # Ui_MainWindow
         # print(self.scale)
         # print(self.spn_W, self.spn_H)
 
-    def set_image(self):
-        self.pixmap = QPixmap(self.map_file)
-        self.label.setPixmap(self.pixmap)
+    def set_scheme(self):
+        self.cur_map = 'map'
+        self.map_file = 'map.png'
+        self.get_image()
+        self.set_image()
+
+    def set_sat(self):
+        self.cur_map = 'sat'
+        self.map_file = 'map.jpg'
+        self.get_image()
+        self.set_image()
+
+    def set_hybrid(self):
+        self.cur_map = 'sat,skl'
+        self.map_file = 'map.png'
+        self.get_image()
+        self.set_image()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_PageDown:
